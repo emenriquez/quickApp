@@ -12,10 +12,10 @@ db = SQLAlchemy(app)
 # Databse classes
 class Visitor(db.Model):
     username = db.Column(db.String(100), unique=True, nullable=False, primary_key=True)
-    numVisits = db.Column(db.Integer, nullable=False, default=0)
+    numVisits = db.Column(db.Integer, nullable=False, default=1)
 
     def __repr__(self):
-        return f'<Visitor {self.username}>' 
+        return f'<Visitor {self.username} - number of visits: {self.numVisits}>' 
 
 
 
@@ -59,13 +59,16 @@ def formDemo():
         name = request.form['name']
         try:
             visitor = db.get_or_404(Visitor, name)
+            visitor.numVisits += 1
         except:
-            db.session.add(name)
+            visitor = Visitor(username=name)
+            db.session.add(visitor)
+        db.session.commit()
     return render_template('form.html', name=name)
 
 @app.route("/visitors")
 def visitors():
-    createSomePeople(['Amy', "Barry", "Chicklet"])
+    # createSomePeople(['Amy', "Barry", "Chicklet"]) # Test for quick add
     people = Visitor.query.all()
     return render_template('visitors.html', people=people)
 
