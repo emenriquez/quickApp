@@ -1,9 +1,6 @@
 from flask import Flask, render_template, request
 from flask_sqlalchemy import SQLAlchemy
 
-import os
-from sqlalchemy.sql import func
-
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///sampledb.db'
@@ -15,7 +12,10 @@ class Visitor(db.Model):
     numVisits = db.Column(db.Integer, nullable=False, default=1)
 
     def __repr__(self):
-        return f'<Visitor {self.username} - number of visits: {self.numVisits}>' 
+        if self.username:
+            return f'{self.username} - {self.numVisits}' 
+        else:
+            return f'unknown - {self.numVisits}'
 
 
 
@@ -57,10 +57,10 @@ def formDemo():
     name = None
     if request.method == 'POST':
         name = request.form['name']
-        try:
-            visitor = db.get_or_404(Visitor, name)
+        visitor = Visitor.query.get(name)
+        if visitor:
             visitor.numVisits += 1
-        except:
+        else:
             visitor = Visitor(username=name)
             db.session.add(visitor)
         db.session.commit()
